@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Чемодан · Список для поездки</title>
+
+<!-- PWA / iOS Add to Home Screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Чемодан">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f5efe2">
+<meta name="description" content="Личный чек-лист для поездок">
+
+<!-- Favicon (suitcase emoji as SVG) -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A7%B3%3C/text%3E%3C/svg%3E">
+
+<!-- Apple Touch Icon (180x180 SVG with cream bg + suitcase) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23f5efe2'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='110'%3E%F0%9F%A7%B3%3C/text%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --bg-card: #ffffff;
+    --ink: #0a0a0a;
+    --ink-soft: #6e6e6e;
+    --ink-faint: #b0b0b0;
+    --line-soft: #e6e3dc;
+    --accent: #e8332a;
+    --accent-soft: #f6c5c2;
+    --on-ink: #f5f3ee;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Archivo', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 500;
+    min-height: 100vh;
+    overscroll-behavior-y: contain;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: calc(24px + env(safe-area-inset-top)) 18px calc(120px + env(safe-area-inset-bottom));
+  }
+
+  /* ---------- HEADER ---------- */
+  header {
+    padding-bottom: 16px;
+    border-bottom: 1.5px solid var(--ink);
+    margin-bottom: 22px;
+  }
+  .eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  h1 {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 900;
+    font-size: 52px;
+    line-height: 0.88;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- TABS ---------- */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 22px;
+  }
+  .tab {
+    flex: 1;
+    padding: 12px 14px;
+    border: 1.5px solid var(--ink);
+    background: var(--bg-card);
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab.active {
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+
+  /* ---------- TRIP CARD ---------- */
+  .trip-card {
+    background: var(--bg-card);
+    border: 1.5px solid var(--ink);
+    border-radius: 12px;
+    padding: 16px 18px 18px;
+    margin-bottom: 22px;
+    position: relative;
+  }
+  .trip-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  .trip-name-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'Archivo', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: var(--ink);
+    padding: 0 0 14px;
+    outline: none;
+  }
+  .trip-name-input::placeholder {
+    color: var(--ink-faint);
+    text-transform: none;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 0;
+  }
+
+  .progress {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-top: 14px;
+    border-top: 1.5px solid var(--ink);
+  }
+  .progress-numbers {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 900;
+    font-size: 30px;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .progress-numbers .total {
+    color: var(--ink-faint);
+    font-weight: 700;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--bg);
+    border: 1.5px solid var(--ink);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--ink);
+    border-radius: 100px;
+    transition: width 0.4s ease;
+  }
+
+  .trip-actions {
+    margin-top: 14px;
+  }
+  .btn-reset {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--bg-card);
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    color: var(--ink);
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-reset:active { background: var(--ink); color: var(--on-ink); }
+  .btn-reset.armed {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    animation: pulse 0.6s ease-in-out infinite alternate;
+  }
+
+  /* ---------- SECTION LABEL ---------- */
+  .section-label {
+    font-family: 'Archivo', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 24px 2px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: "";
+    flex: 1;
+    height: 1.5px;
+    background: var(--ink);
+  }
+
+  /* ---------- CHIPS ---------- */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    padding: 9px 14px;
+    border-radius: 100px;
+    border: 1.5px solid var(--ink);
+    background: var(--bg-card);
+    font-family: 'Archivo', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .chip.active {
+    background: var(--ink);
+    color: var(--on-ink);
+  }
+  .chip .dot { display: none; }
+  .chip:active { transform: scale(0.96); }
+
+  /* ---------- CATEGORY ---------- */
+  .category {
+    margin-bottom: 22px;
+  }
+  .category-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 0 2px 10px;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .category-title {
+    font-family: 'Archivo', sans-serif;
+    font-weight: 900;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .category-count {
+    font-family: 'Archivo', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .items {
+    background: var(--bg-card);
+    border: 1.5px solid var(--ink);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    overflow: hidden;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line-soft);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .item:last-child { border-bottom: none; }
+  .item:active { background: var(--bg); }
+
+  .checkbox {
+    width: 22px;
+    height: 22px;
+    border-radius: 5px;
+    border: 1.5px solid var(--ink);
+    background: var(--bg-card);
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.15s;
+  }
+  .item.checked .checkbox {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+  .checkbox::after {
+    content: "";
+    position: absolute;
+    top: 3px; left: 7px;
+    width: 5px; height: 11px;
+    border: solid var(--bg-card);
+    border-width: 0 2.2px 2.2px 0;
+    transform: rotate(45deg) scale(0);
+    transition: transform 0.15s;
+  }
+  .item.checked .checkbox::after {
+    transform: rotate(45deg) scale(1);
+  }
+
+  .item-name {
+    flex: 1;
+    font-size: 15px;
+    color: var(--ink);
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .item.checked .item-name {
+    color: var(--ink-faint);
+    text-decoration: line-through;
+    text-decoration-color: var(--ink-faint);
+    text-decoration-thickness: 1.5px;
+  }
+
+  /* ---------- EDIT MODE ---------- */
+  .edit-category {
+    background: var(--bg-card);
+    border: 1.5px solid var(--ink);
+    border-radius: 12px;
+    padding: 14px 14px 8px;
+    margin-bottom: 14px;
+  }
+  .edit-cat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .edit-cat-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'Archivo', sans-serif;
+    font-size: 19px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    outline: none;
+    padding: 4px 0;
+  }
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    transition: all 0.15s;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover, .icon-btn:active {
+    background: var(--bg);
+    color: var(--accent);
+  }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  .edit-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+  }
+  .edit-item-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'Archivo', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    outline: none;
+    padding: 6px 0;
+    border-bottom: 1px dashed transparent;
+  }
+  .edit-item-input:focus {
+    border-bottom-color: var(--ink-faint);
+  }
+  .edit-item-bullet {
+    color: var(--ink-faint);
+    font-size: 14px;
+    font-weight: 700;
+    width: 12px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* ---------- INLINE ADD ROW (item) ---------- */
+  .edit-item.add-row {
+    border-top: 1px dashed var(--ink-faint);
+    margin-top: 6px;
+    padding-top: 10px;
+  }
+  .edit-item.add-row .edit-item-bullet.add-plus {
+    color: var(--ink);
+    font-weight: 900;
+    font-size: 16px;
+  }
+  .add-item-input::placeholder {
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+  .add-confirm {
+    color: var(--ink) !important;
+  }
+  .add-confirm:active {
+    background: var(--ink) !important;
+    color: var(--on-ink) !important;
+  }
+
+  /* ---------- INLINE ADD CATEGORY ---------- */
+  .add-cat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: var(--bg-card);
+    border: 1.5px dashed var(--ink);
+    border-radius: 12px;
+    transition: all 0.2s;
+  }
+  .add-cat-row:focus-within {
+    border-style: solid;
+  }
+  .add-cat-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'Archivo', sans-serif;
+    font-size: 17px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    outline: none;
+    padding: 4px 0;
+  }
+  .add-cat-input::placeholder {
+    color: var(--ink-faint);
+    text-transform: none;
+    font-style: italic;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+  .add-cat-confirm {
+    border: none;
+    background: var(--ink);
+    color: var(--on-ink);
+    padding: 9px 14px;
+    border-radius: 100px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .add-cat-confirm:active {
+    transform: scale(0.95);
+  }
+
+  /* ---------- DELETE CONFIRM (armed state) ---------- */
+  .delete-cat-btn.armed {
+    background: var(--accent) !important;
+    color: #fff !important;
+    animation: pulse 0.6s ease-in-out infinite alternate;
+  }
+  @keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
+  }
+
+  /* ---------- EMPTY STATE ---------- */
+  .empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--ink-faint);
+    border: 1.5px dashed var(--ink-faint);
+    border-radius: 12px;
+    margin-top: 20px;
+  }
+  .empty-icon {
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--ink);
+    margin-bottom: 8px;
+    letter-spacing: -0.04em;
+  }
+  .empty-title {
+    font-family: 'Archivo', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .empty-text {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* ---------- TOAST ---------- */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--ink);
+    color: var(--on-ink);
+    padding: 12px 20px;
+    border-radius: 100px;
+    font-family: 'Archivo', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    transition: transform 0.3s ease;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ---------- FOOTER NOTE ---------- */
+  .footer-note {
+    text-align: center;
+    margin-top: 36px;
+    padding: 16px;
+    color: var(--ink-faint);
+    font-size: 10px;
+    font-family: 'Archivo', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .footer-note::before {
+    content: "● ";
+    color: var(--accent);
+    margin-right: 4px;
+  }
+
+  @media (max-width: 380px) {
+    h1 { font-size: 42px; }
+    .category-title { font-size: 20px; }
+    .trip-name-input { font-size: 22px; }
+    .progress-numbers { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="eyebrow">Packing · Bon voyage</div>
+      <h1>Чемодан</h1>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" data-mode="trip">Поездка</button>
+      <button class="tab" data-mode="edit">Список</button>
+    </div>
+
+    <div id="content"></div>
+
+    <div class="footer-note">Autosave · всё сохраняется</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const MASTER_KEY = 'packing:master:v5';
+  const TRIP_KEY = 'packing:trip:v5';
+
+  const DEFAULT_MASTER = {
+    categories: [
+      { id: 'tech', name: 'Электроника', items: [
+        { id: 'e1', name: 'Зарядки' },
+        { id: 'e2', name: 'Наушники' },
+        { id: 'e3', name: 'Пауэрбанк' },
+        { id: 'e4', name: 'Polaroid' },
+        { id: 'e5', name: 'Вибратор' }
+      ]},
+      { id: 'clothes', name: 'Одежда', items: [
+        { id: 'c1', name: 'Трусы' },
+        { id: 'c2', name: 'Носки' },
+        { id: 'c3', name: 'Топики' },
+        { id: 'c4', name: 'Майки' },
+        { id: 'c5', name: 'Кофты' },
+        { id: 'c6', name: 'Платья' },
+        { id: 'c7', name: 'Штаны' },
+        { id: 'c8', name: 'Шорты' },
+        { id: 'c9', name: 'Куртки' },
+        { id: 'c10', name: 'Шапки' },
+        { id: 'c11', name: 'Балаклава' },
+        { id: 'c12', name: 'Обувь' }
+      ]},
+      { id: 'plane', name: 'Самолёт', items: [
+        { id: 'pl1', name: 'Спрей в нос' },
+        { id: 'pl2', name: 'Ментос' },
+        { id: 'pl3', name: 'Пустая бутылка для воды' }
+      ]},
+      { id: 'misc', name: 'Мелочь', items: [
+        { id: 'mi1', name: 'Маникюрный набор' },
+        { id: 'mi2', name: 'Блёстки' },
+        { id: 'mi3', name: 'Масло для ногтей' },
+        { id: 'mi4', name: 'Украшения / резинки' },
+        { id: 'mi5', name: 'Влажные салфетки' },
+        { id: 'mi6', name: 'Зубная щётка и паста' },
+        { id: 'mi7', name: 'Пластыри от мозолей' },
+        { id: 'mi8', name: 'Обезбол' },
+        { id: 'mi9', name: 'Очки' },
+        { id: 'mi10', name: 'МФР мячи' }
+      ]},
+      { id: 'beach', name: 'Пляж', items: [
+        { id: 'b1', name: 'Маски' },
+        { id: 'b2', name: 'Купальники' },
+        { id: 'b3', name: 'Крем от загара' },
+        { id: 'b4', name: 'Резиновые тапки' },
+        { id: 'b5', name: 'Шапка от солнца' },
+        { id: 'b6', name: 'Полотенце' }
+      ]}
+    ]
+  };
+
+  let master = null;
+  let trip = null;
+  let mode = 'trip';
+
+  const $ = (s) => document.querySelector(s);
+  const content = $('#content');
+
+  function uid() {
+    return Math.random().toString(36).slice(2, 9);
+  }
+
+  async function loadAll() {
+    // Load master
+    try {
+      const v = localStorage.getItem(MASTER_KEY);
+      master = v ? JSON.parse(v) : null;
+    } catch {
+      master = null;
+    }
+    if (!master) {
+      master = JSON.parse(JSON.stringify(DEFAULT_MASTER));
+      await saveMaster();
+    }
+
+    // Load trip
+    try {
+      const v = localStorage.getItem(TRIP_KEY);
+      trip = v ? JSON.parse(v) : null;
+    } catch {
+      trip = null;
+    }
+    if (!trip) {
+      trip = {
+        name: '',
+        activeCategories: master.categories.map(c => c.id),
+        checked: {}
+      };
+      await saveTrip();
+    }
+  }
+
+  async function saveMaster() {
+    try { localStorage.setItem(MASTER_KEY, JSON.stringify(master)); }
+    catch (e) { console.error('saveMaster failed:', e); showToast('Не удалось сохранить'); }
+  }
+  async function saveTrip() {
+    try { localStorage.setItem(TRIP_KEY, JSON.stringify(trip)); }
+    catch (e) { console.error('saveTrip failed:', e); showToast('Не удалось сохранить'); }
+  }
+
+  function showToast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  function getActiveItems() {
+    return master.categories
+      .filter(c => trip.activeCategories.includes(c.id))
+      .flatMap(c => c.items);
+  }
+
+  function progress() {
+    const items = getActiveItems();
+    const total = items.length;
+    const done = items.filter(i => trip.checked[i.id]).length;
+    return { done, total, pct: total ? Math.round((done / total) * 100) : 0 };
+  }
+
+  /* =================== RENDER =================== */
+  function render() {
+    if (mode === 'trip') renderTrip();
+    else renderEdit();
+  }
+
+  function renderTrip() {
+    const { done, total, pct } = progress();
+    const tripName = trip.name || '';
+
+    let html = `
+      <div class="trip-card">
+        <div class="trip-label">Поездка</div>
+        <input class="trip-name-input" id="tripName" placeholder="Куда едем?" value="${escapeAttr(tripName)}" />
+        <div class="progress">
+          <div class="progress-numbers">${String(done).padStart(2,'0')}<span class="total">/${String(total).padStart(2,'0')}</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="trip-actions">
+          <button class="btn-reset" id="newTrip">↻  Новая поездка</button>
+        </div>
+      </div>
+
+      <div class="section-label">Что берём</div>
+      <div class="chips" id="chips">
+        ${master.categories.map(c => `
+          <button class="chip ${trip.activeCategories.includes(c.id) ? 'active' : ''}" data-cid="${c.id}">
+            <span class="dot"></span>${escapeHtml(c.name)}
+          </button>
+        `).join('')}
+      </div>
+    `;
+
+    if (master.categories.length === 0) {
+      html += `
+        <div class="empty">
+          <div class="empty-icon">∅</div>
+          <div class="empty-title">Список пуст</div>
+          <div class="empty-text">Перейди во вкладку «Список» и добавь категории и вещи</div>
+        </div>
+      `;
+    } else {
+      const activeCats = master.categories.filter(c => trip.activeCategories.includes(c.id));
+      if (activeCats.length === 0) {
+        html += `
+          <div class="empty" style="margin-top:24px">
+            <div class="empty-icon">∅</div>
+            <div class="empty-title">Ни одной категории не выбрано</div>
+            <div class="empty-text">Включи нужные категории выше</div>
+          </div>
+        `;
+      } else {
+        html += `<div style="height:8px"></div>`;
+        for (const cat of activeCats) {
+          const catDone = cat.items.filter(i => trip.checked[i.id]).length;
+          html += `
+            <div class="category">
+              <div class="category-header">
+                <div class="category-title">${escapeHtml(cat.name)}</div>
+                <div class="category-count">${catDone} / ${cat.items.length}</div>
+              </div>
+              <div class="items">
+                ${cat.items.map(it => `
+                  <div class="item ${trip.checked[it.id] ? 'checked' : ''}" data-iid="${it.id}">
+                    <div class="checkbox"></div>
+                    <div class="item-name">${escapeHtml(it.name)}</div>
+                  </div>
+                `).join('')}
+                ${cat.items.length === 0 ? `<div style="padding:14px 16px;color:var(--ink-faint);font-size:13px;font-style:italic;">пусто</div>` : ''}
+              </div>
+            </div>
+          `;
+        }
+      }
+    }
+
+    content.innerHTML = html;
+
+    // Bind events
+    $('#tripName').addEventListener('input', async (e) => {
+      trip.name = e.target.value;
+      await saveTrip();
+    });
+
+    const newTripBtn = $('#newTrip');
+    let newTripArmed = false;
+    let newTripTimer = null;
+    const originalNewTripText = newTripBtn.textContent;
+    newTripBtn.addEventListener('click', async () => {
+      if (!newTripArmed) {
+        newTripArmed = true;
+        newTripBtn.textContent = 'ТОЧНО? ТАПНИ ЕЩЁ РАЗ';
+        newTripBtn.classList.add('armed');
+        newTripTimer = setTimeout(() => {
+          newTripArmed = false;
+          newTripBtn.textContent = originalNewTripText;
+          newTripBtn.classList.remove('armed');
+        }, 3000);
+        return;
+      }
+      clearTimeout(newTripTimer);
+      trip.checked = {};
+      trip.name = '';
+      await saveTrip();
+      showToast('Готово к новой поездке ✨');
+      render();
+    });
+
+    document.querySelectorAll('.chip').forEach(el => {
+      el.addEventListener('click', async () => {
+        const cid = el.dataset.cid;
+        const idx = trip.activeCategories.indexOf(cid);
+        if (idx >= 0) trip.activeCategories.splice(idx, 1);
+        else trip.activeCategories.push(cid);
+        await saveTrip();
+        render();
+      });
+    });
+
+    document.querySelectorAll('.item').forEach(el => {
+      el.addEventListener('click', async () => {
+        const iid = el.dataset.iid;
+        trip.checked[iid] = !trip.checked[iid];
+        if (!trip.checked[iid]) delete trip.checked[iid];
+        await saveTrip();
+        render();
+      });
+    });
+  }
+
+  function renderEdit() {
+    let html = `<div class="section-label">Мастер-список</div>`;
+
+    for (const cat of master.categories) {
+      html += `
+        <div class="edit-category" data-cid="${cat.id}">
+          <div class="edit-cat-header">
+            <input class="edit-cat-input" data-action="rename-cat" value="${escapeAttr(cat.name)}" />
+            <button class="icon-btn delete-cat-btn" data-action="delete-cat" title="Удалить категорию">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+            </button>
+          </div>
+          ${cat.items.map(it => `
+            <div class="edit-item" data-iid="${it.id}">
+              <span class="edit-item-bullet">•</span>
+              <input class="edit-item-input" data-action="rename-item" value="${escapeAttr(it.name)}" />
+              <button class="icon-btn" data-action="delete-item" title="Удалить">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          `).join('')}
+          <div class="edit-item add-row">
+            <span class="edit-item-bullet add-plus">+</span>
+            <input class="edit-item-input add-item-input" placeholder="новая вещь..." />
+            <button class="icon-btn add-confirm" data-action="add-item-confirm" title="Добавить">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    html += `
+      <div class="add-cat-row">
+        <input class="add-cat-input" id="addCatInput" placeholder="новая категория..." />
+        <button class="add-cat-confirm" id="addCatBtn">+ Добавить</button>
+      </div>
+    `;
+
+    content.innerHTML = html;
+
+    // ----- Add new category -----
+    const addCatInput = $('#addCatInput');
+    const addCatBtn = $('#addCatBtn');
+    const submitNewCat = async () => {
+      const name = addCatInput.value.trim();
+      if (!name) return;
+      const newCat = { id: 'c_' + uid(), name, items: [] };
+      master.categories.push(newCat);
+      trip.activeCategories.push(newCat.id);
+      await saveMaster();
+      await saveTrip();
+      render();
+    };
+    addCatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); submitNewCat(); }
+    });
+    addCatBtn.addEventListener('click', submitNewCat);
+
+    // ----- Per-category bindings -----
+    document.querySelectorAll('.edit-category').forEach(catEl => {
+      const cid = catEl.dataset.cid;
+      const cat = master.categories.find(c => c.id === cid);
+      if (!cat) return;
+
+      // Rename category (save on blur/change, not on every keystroke)
+      catEl.querySelector('[data-action="rename-cat"]').addEventListener('change', async (e) => {
+        cat.name = e.target.value.trim() || cat.name;
+        await saveMaster();
+      });
+
+      // Delete category — two-step inline confirm
+      const delBtn = catEl.querySelector('[data-action="delete-cat"]');
+      let armed = false;
+      let armTimer = null;
+      const disarm = () => {
+        armed = false;
+        delBtn.classList.remove('armed');
+        clearTimeout(armTimer);
+      };
+      delBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!armed) {
+          armed = true;
+          delBtn.classList.add('armed');
+          armTimer = setTimeout(disarm, 3000);
+          showToast('Тапни ещё раз — удалить ' + cat.name);
+          return;
+        }
+        clearTimeout(armTimer);
+        master.categories = master.categories.filter(c => c.id !== cid);
+        trip.activeCategories = trip.activeCategories.filter(x => x !== cid);
+        for (const it of cat.items) delete trip.checked[it.id];
+        await saveMaster();
+        await saveTrip();
+        showToast('Категория удалена');
+        render();
+      });
+
+      // Add item — inline input
+      const addInput = catEl.querySelector('.add-item-input');
+      const addBtn = catEl.querySelector('[data-action="add-item-confirm"]');
+      const submitNewItem = async () => {
+        const name = addInput.value.trim();
+        if (!name) return;
+        cat.items.push({ id: 'i_' + uid(), name });
+        await saveMaster();
+        render();
+      };
+      addInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); submitNewItem(); }
+      });
+      addBtn.addEventListener('click', submitNewItem);
+
+      // Existing items
+      catEl.querySelectorAll('.edit-item:not(.add-row)').forEach(itEl => {
+        const iid = itEl.dataset.iid;
+        const it = cat.items.find(i => i.id === iid);
+        if (!it) return;
+
+        itEl.querySelector('[data-action="rename-item"]').addEventListener('change', async (e) => {
+          it.name = e.target.value.trim() || it.name;
+          await saveMaster();
+        });
+
+        itEl.querySelector('[data-action="delete-item"]').addEventListener('click', async () => {
+          cat.items = cat.items.filter(i => i.id !== iid);
+          delete trip.checked[iid];
+          await saveMaster();
+          await saveTrip();
+          render();
+        });
+      });
+    });
+  }
+
+  /* =================== HELPERS =================== */
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, ch => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[ch]));
+  }
+  function escapeAttr(s) { return escapeHtml(s); }
+
+  /* =================== INIT =================== */
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.mode;
+      render();
+    });
+  });
+
+  (async () => {
+    try {
+      await loadAll();
+      render();
+    } catch (e) {
+      content.innerHTML = `<div class="empty"><div class="empty-icon">!</div><div class="empty-title">Не удалось загрузить</div><div class="empty-text">${escapeHtml(String(e))}</div></div>`;
+    }
+  })();
+</script>
+</body>
+</html>
